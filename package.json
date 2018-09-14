@@ -1,7 +1,7 @@
 {
   "name": "async-iterator-to-pull-stream",
   "version": "1.0.0",
-  "description": "Convert a pull stream to an (async) iterator",
+  "description": "Convert a (async) iterator to a pull stream",
   "main": "index.js",
   "scripts": {
     "test": "nyc --reporter=lcov --reporter=text ava"
