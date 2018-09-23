@@ -1,4 +1,12 @@
 module.exports = iterator => {
+  if (!iterator.next) {
+    if (iterator[Symbol.asyncIterator]) {
+      iterator = iterator[Symbol.asyncIterator]()
+    } else if (iterator[Symbol.iterator]) {
+      iterator = iterator[Symbol.iterator]()
+    }
+  }
+
   return async (end, cb) => {
     if (end) return cb(end)
 

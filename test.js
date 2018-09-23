@@ -63,3 +63,35 @@ test.cb('should error in iterator', t => {
     })
   )
 })
+
+test.cb('should accept iterable', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  pull(
+    toPull(sourceValues),
+    pull.collect((err, values) => {
+      t.falsy(err)
+      t.deepEqual(values, sourceValues)
+      t.end()
+    })
+  )
+})
+
+test.cb('should accept async iterable', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  const iterator = async function * () {
+    for (let i = 0; i < sourceValues.length; i++) {
+      yield await futureValue(sourceValues[i], sourceValues[i])
+    }
+  }
+
+  pull(
+    toPull({ [Symbol.asyncIterator]: () => iterator() }),
+    pull.collect((err, values) => {
+      t.falsy(err)
+      t.deepEqual(values, sourceValues)
+      t.end()
+    })
+  )
+})
