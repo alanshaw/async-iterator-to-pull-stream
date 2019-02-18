@@ -35,7 +35,34 @@ pull(
 
 ### `toPull(iterator)`
 
-Convert an async `iterator` into a pull stream. Returns a pull stream that can be used as a source in a pull pipeline.
+Convert an async `iterator` into a _source_ pull stream. Returns a pull stream that can be used as a source in a pull pipeline.
+
+### `toPull.through(createIterable)`
+
+A "through stream" in async iterator terms is a function that takes an iterable to read from, and returns an iterable that yields (possibly mutated) data.
+
+`createIterable` is a function that creates a new iterable. It is passed an iterable - the source to read data from, and should return an iterable that yields (possibly mutated data). e.g.
+
+```js
+const toPull = require('async-iterator-to-pull-stream')
+const pull = require('pull-stream')
+
+// A "pass through stream" that reads from the `source` iterable and returns an
+// iterable (a generator in this case) that yields the same data.
+const passThrough = source => (async function * () {
+  for await (const chunk of source) {
+    yield chunk // here we _could_ change the chunk or buffer it or whatever
+  }
+})()
+
+pull(
+  pull.values([1, 2, 3]),
+  toPull.through(passThrough),
+  pull.collect((err, chunks) => {
+    console.log(err, chunks) // logs: undefined, [1, 2, 3]
+  })
+)
+```
 
 ## Contribute
 

@@ -1,11 +1,8 @@
-module.exports = iterator => {
-  if (!iterator.next) {
-    if (iterator[Symbol.asyncIterator]) {
-      iterator = iterator[Symbol.asyncIterator]()
-    } else if (iterator[Symbol.iterator]) {
-      iterator = iterator[Symbol.iterator]()
-    }
-  }
+const getIterator = require('get-iterator')
+const toIterable = require('pull-stream-to-async-iterator')
+
+function toPull (iterator) {
+  iterator = getIterator(iterator)
 
   return async (end, cb) => {
     if (end) return cb(end)
@@ -21,3 +18,7 @@ module.exports = iterator => {
     cb(null, next.value)
   }
 }
+
+toPull.through = factory => read => toPull(factory(toIterable(read)))
+
+module.exports = toPull

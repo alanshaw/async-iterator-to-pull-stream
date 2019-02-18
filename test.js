@@ -44,7 +44,7 @@ test.cb('should convert iterator to pull stream', t => {
   )
 })
 
-test.cb('should error in iterator', t => {
+test.cb('should handle error in iterator', t => {
   const sourceValues = [1, 2, 3, 4, new Error('Boom!')]
 
   const iterator = function * () {
@@ -91,6 +91,46 @@ test.cb('should accept async iterable', t => {
     pull.collect((err, values) => {
       t.falsy(err)
       t.deepEqual(values, sourceValues)
+      t.end()
+    })
+  )
+})
+
+test.cb('should convert async iterable through stream to pull through stream', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  const passThrough = source => (async function * () {
+    for await (const chunk of source) {
+      yield chunk // here we _could_ change the chunk or buffer it or whatever
+    }
+  })()
+
+  pull(
+    pull.values(sourceValues),
+    toPull.through(passThrough),
+    pull.collect((err, values) => {
+      t.falsy(err)
+      t.deepEqual(values, sourceValues)
+      t.end()
+    })
+  )
+})
+
+test.cb('should handle error in async iterable through stream', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  const passThrough = source => (async function * () {
+    for await (const _ of source) { // eslint-disable-line no-unused-vars
+      throw new Error('boom')
+    }
+  })()
+
+  pull(
+    pull.values(sourceValues),
+    toPull.through(passThrough),
+    pull.collect((err, values) => {
+      t.truthy(err)
+      t.is(err.message, 'boom')
       t.end()
     })
   )

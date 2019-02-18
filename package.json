@@ -4,7 +4,7 @@
   "description": "Convert a (async) iterator to a pull stream",
   "main": "index.js",
   "scripts": {
-    "test": "nyc --reporter=lcov --reporter=text ava"
+    "test": "nyc --reporter=lcov --reporter=text ava --verbose"
   },
   "keywords": [
     "pull",
@@ -23,5 +23,9 @@
   "ava": {
     "babel": false,
     "compileEnhancements": false
+  },
+  "dependencies": {
+    "get-iterator": "^1.0.1",
+    "pull-stream-to-async-iterator": "^1.0.1"
   }
 }
