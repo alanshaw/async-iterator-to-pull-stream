@@ -27,5 +27,13 @@
   "dependencies": {
     "get-iterator": "^1.0.1",
     "pull-stream-to-async-iterator": "^1.0.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alanshaw/async-iterator-to-pull-stream.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alanshaw/async-iterator-to-pull-stream/issues"
+  },
+  "homepage": "https://github.com/alanshaw/async-iterator-to-pull-stream#readme"
 }
