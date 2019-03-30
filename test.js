@@ -25,6 +25,26 @@ test.cb('should convert async iterator to pull stream', t => {
   )
 })
 
+test.cb('should return mid way through async iterator source', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  const iterator = async function * () {
+    for (let i = 0; i < sourceValues.length; i++) {
+      yield await futureValue(sourceValues[i], sourceValues[i])
+    }
+  }
+
+  pull(
+    toPull(iterator()),
+    pull.take(1),
+    pull.collect((err, values) => {
+      t.falsy(err)
+      t.deepEqual(values, [sourceValues[0]])
+      t.end()
+    })
+  )
+})
+
 test.cb('should convert iterator to pull stream', t => {
   const sourceValues = [1, 2, 3, 4, 5]
 
@@ -131,6 +151,49 @@ test.cb('should handle error in async iterable through stream', t => {
     pull.collect((err, values) => {
       t.truthy(err)
       t.is(err.message, 'boom')
+      t.end()
+    })
+  )
+})
+
+test.cb('should convert async iterable sink to pull sink', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  pull(
+    pull.values(sourceValues),
+    toPull.sink(async source => {
+      let i = 0
+      for await (const value of source) {
+        t.is(value, sourceValues[i])
+        i++
+      }
+      t.is(i, sourceValues.length)
+      t.end()
+    })
+  )
+})
+
+test.cb('should return mid way through async iterable sink', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  pull(
+    pull.values(sourceValues),
+    toPull.sink(async source => {
+      await source.next()
+      await source.return()
+      t.end()
+    })
+  )
+})
+
+test.cb('should throw mid way through async iterable sink', t => {
+  const sourceValues = [1, 2, 3, 4, 5]
+
+  pull(
+    pull.values(sourceValues),
+    toPull.sink(async source => {
+      await source.next()
+      await t.throwsAsync(source.throw(new Error('boom')))
       t.end()
     })
   )

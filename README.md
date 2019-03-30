@@ -16,15 +16,15 @@ npm install async-iterator-to-pull-stream
 const pull = require('pull-stream')
 const toPull = require('async-iterator-to-pull-stream')
 
-const iterator = async function * () {
+const source = (async function * () {
   const sourceValues = [1, 2, 3, 4, 5]
   for (let i = 0; i < sourceValues.length; i++) {
     yield await new Promise(resolve => setTimeout(() => resolve(sourceValues[i])))
   }
-}
+})()
 
 pull(
-  toPull(iterator()),
+  toPull.source(source),
   pull.collect((err, values) => {
     console.log(values) // 1, 2, 3, 4, 5
   })
@@ -33,15 +33,13 @@ pull(
 
 ## API
 
-### `toPull(iterator)`
+### `toPull.source(iterator)`
 
 Convert an async `iterator` into a _source_ pull stream. Returns a pull stream that can be used as a source in a pull pipeline.
 
-### `toPull.through(createIterable)`
+### `toPull.transform(transform)`
 
-A "through stream" in async iterator terms is a function that takes an iterable to read from, and returns an iterable that yields (possibly mutated) data.
-
-`createIterable` is a function that creates a new iterable. It is passed an iterable - the source to read data from, and should return an iterable that yields (possibly mutated data). e.g.
+A `transform` is a function that takes an iterable to read from, and returns an iterable that yields (possibly mutated) data. e.g.
 
 ```js
 const toPull = require('async-iterator-to-pull-stream')
@@ -57,12 +55,34 @@ const passThrough = source => (async function * () {
 
 pull(
   pull.values([1, 2, 3]),
-  toPull.through(passThrough),
+  toPull.transform(passThrough),
   pull.collect((err, chunks) => {
     console.log(err, chunks) // logs: undefined, [1, 2, 3]
   })
 )
 ```
+
+### `toPull.sink(sink)`
+
+Convert a `sink` to a pull stream sink. A `sink` is a function that takes an async iterable and consumes some/all of it.
+
+```js
+const toPull = require('async-iterator-to-pull-stream')
+const pull = require('pull-stream')
+
+pull(
+  pull.values([1, 2, 3]),
+  toPull.sink(async source => {
+    for await (const value of source) {
+      console.log(value) // logs: 1 then 2 then 3
+    }
+  })
+)
+```
+
+### `toPull.duplex(duplex)`
+
+Convert a `duplex` to a pull stream duplex. A `duplex` is just an object with two properties, `sink` (a function that takes an async iterable) and `source` (an async iterable).
 
 ## Contribute
 
